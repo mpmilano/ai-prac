@@ -7,22 +7,21 @@ template<typename Node>
 struct path {
 	enum class empty { EMPTY};
 	const Node* elem;
-	std::unique_ptr<const path> r;
+	std::shared_ptr<const path> r;
 	path(const Node& elem, decltype(r) r)
 		:elem(&elem),r(r){}
 	
 	path(const Node& elem, path r)
-		:elem(&elem),r(std::unique_ptr<path>(new path(r))){}
+		:elem(&elem),r(new path(r)){}
 
 	path(const Node& elem, empty)
 		:elem(&elem){}
 
 	path(const path& p)
-		:elem(p.elem),r(std::unique_ptr<path>(new path(p.r))){}
+		:elem(p.elem),r(p.r){}
 	
-	path(const std::unique_ptr<path>& p)
-		:elem(p->elem),r(std::unique_ptr<path>(new path(p->r))){}
-
+	path(const std::shared_ptr<const path>& p)
+		:elem(p->elem),r(p->r){}
 
 	bool operator==(const path &p) const{
 		return (elem == p.elem) && r == p.r;
@@ -30,7 +29,7 @@ struct path {
 
 	path operator=(const path &p){
 		elem = p.elem;
-		r = std::unique_ptr<path>(new path(*p.r));
+		r = p.r;
 		return *this;
 	}
 };
@@ -43,19 +42,21 @@ auto minimax(const Node& a,
 	const std::function<decltype(children_f(a)) (decltype(a)) > &children = children_f;
 
 	int wantmax = (myturn(a) ? 0 : std::numeric_limits<int>::max());
-	auto statemax = path<Node>(a,path<Node>::empty::EMPTY);
+	path<Node> statemax(a,path<Node>::empty::EMPTY);
 	const auto &kids = children(a);
 	if (kids.size() == 0){
 		return std::make_pair(utility(a),statemax);
 	}
-	for (const auto &c : kids){
-		auto r = minimax(c, utility, myturn, children);
-		if (myturn(a) ? r.first > wantmax : r.first < wantmax) {
-			wantmax = r.first;
-			statemax = path<Node>(c, r.second);
+	else {
+		for (const auto &c : kids){
+			auto r = minimax(c, utility, myturn, children);
+			if (myturn(a) ? r.first > wantmax : r.first < wantmax) {
+				wantmax = r.first;
+				statemax = path<Node>(c, r.second);
+			}
 		}
+		return std::make_pair(wantmax, statemax);
 	}
-	return std::make_pair(wantmax, statemax);
 }
 
 int main(){
