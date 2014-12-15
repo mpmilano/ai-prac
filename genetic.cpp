@@ -2,7 +2,7 @@
 #include <vector>
 #include <functional>
 #include "ProbDist.hpp"
-
+#include "NHist.hpp"
 
 using namespace std;
 
@@ -22,11 +22,11 @@ auto genetic(F generate_f, int k, G rank_f, H done_f, I mutate_f){
 		return r;
 	};
 	
-	
-	list<vec > parents;
-	for (int i = 0; i < k; ++i) parents.push_back(generate());
-	std::function<const vec& (const decltype(parents)&)> recr;
-	recr = [&recr, &done, &rank, &mutate](const auto& parents) -> const vec&{
+	NHist<1,list<vec> > parents;
+	for (int i = 0; i < k; ++i) parents.curr().push_back(generate());
+	std::function<const vec& (decltype(parents)&)> recr;
+	recr = [&recr, &done, &rank, &mutate](auto& gens) -> const vec&{
+		const auto& parents = gens.prev();
 		for (auto &v : parents) if (done(v)) return v;
 		list<double> scores;
 		for (auto &v : parents) scores.push_back(rank(v));
@@ -38,7 +38,9 @@ auto genetic(F generate_f, int k, G rank_f, H done_f, I mutate_f){
 			auto second = pd.choose(first);
 			couples.emplace_back(first, second);
 		}
-		list<vec > nextGen;
+		auto &nextGen = gens.curr();
+		static_assert(is_same<typename decay<decltype(nextGen)>::type, list<vec> >::value,
+					  "Why aren't these the same?");
 		for (auto &p : couples){
 			decltype(p.first.size()) point = rand() % (p.first.size());
 			vec a;
@@ -55,9 +57,9 @@ auto genetic(F generate_f, int k, G rank_f, H done_f, I mutate_f){
 			nextGen.push_back(mutate(a));
 			nextGen.push_back(mutate(b));
 		}
-		return recr(nextGen);
+		return recr(gens.advance());
 	};
-	return recr(parents);
+	return recr(parents.advance());
 	
 }
 
