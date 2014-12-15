@@ -29,17 +29,17 @@ public:
 
 };
 
-template<typename T, typename U, typename V>
+template<typename T, typename U = T, typename V = T>
 auto build_pwl(const std::function<U (const T&) > &track,
-			   const std::function<V (const T&) > &pair,
-			   const std::function<const T& (const V&) > &depair){
+			   const std::function<V (const T&) > &pair = [](const T &e){return e;},
+			   const std::function<const T& (const V&) > &depair = [](const V &e) -> const T& {return e;}){
 	return PriorityWorklist<T,U,V>(track,pair,depair);
 }
 
-template<typename T, typename U, typename V>
-auto build_pwl(U (*track) (const T&),
-			   V (*pair) (const T&),
-			   const T& (*depair) (const V&) ){
+template<typename T, typename U = T, typename V = T>
+auto build_pwl(U (*track) (const T&) = [](const T &e){return e;},
+			   V (*pair) (const T&) = [](const T &e){return e;},
+			   const T& (*depair) (const V&) = [](const V &e) -> const T& {return e;} ){
 	PriorityWorklist<T,U,V> ret(track,pair,depair);
 	return ret;
 }

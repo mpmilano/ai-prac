@@ -85,4 +85,6 @@ int main(){
 	auto n = Node::build(g,{});
 	std::vector<Node_p > v;
 	v.push_back(n);
+
+	auto wl = build_pwl<int>();
 }
