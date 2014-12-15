@@ -3,14 +3,14 @@
 #include <functional>
 #include "path.hpp"
 
-template<typename Node, typename L>
+template<typename Vec, typename Node, typename L>
 auto minimax(const Node& a,
 			 const std::function<int (decltype(a)) > &utility,
-			 const std::function<bool (decltype(a) )> &myturn,
+			 const std::function<bool (decltype(a), const Vec&, const Vec& )> &compare,
 			 const L &children_f){
 	const std::function<decltype(children_f(a)) (decltype(a)) > &children = children_f;
 
-	int wantmax = (myturn(a) ? 0 : std::numeric_limits<int>::max());
+	Vec wantmax;
 	path<Node> statemax(a,path<Node>::empty::EMPTY);
 	const auto &kids = children(a);
 	if (kids.size() == 0){
@@ -18,8 +18,8 @@ auto minimax(const Node& a,
 	}
 	else {
 		for (const auto &c : kids){
-			auto r = minimax(c, utility, myturn, children);
-			if (myturn(a) ? r.first > wantmax : r.first < wantmax) {
+			auto r = minimax(c, utility, compare, children);
+			if (compare(a,r.first,wantmax) ) {
 				wantmax = r.first;
 				statemax = path<Node>(c, r.second);
 			}
@@ -30,7 +30,7 @@ auto minimax(const Node& a,
 
 int main(){
 	
-	minimax(0, [](const int&){return 0;},
-			[](const int&){return true; },
+	minimax<int>(0, [](const int&){return 0;},
+			[](const int&, const int &f, const int& o){return f < o; },
 			[](const int&){return std::list<int>(); });
 }
