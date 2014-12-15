@@ -31,4 +31,11 @@ struct path {
 		r = p.r;
 		return *this;
 	}
+
+	const Node& first() const {
+		return *elem;
+	}
+
+	const auto* rest() const { return r.get(); }
+
 };
