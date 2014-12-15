@@ -24,13 +24,13 @@ public:
 			++it;
 		}
 	}
-	const T& choose(const T& exclude){
+	const T& choose(const T& exclude) const {
 		auto* cand = &choose();
 		while (cand == &exclude) cand = &choose();
 		return *cand;
 	}
 
-	const T& choose(){
+	const T& choose() const {
 		return *source[rand()%granularity];
 	}
 
