@@ -3,6 +3,7 @@ class PriorityWorklist {
 	std::set<U> seen;
 	std::set<T> holding;
 	std::priority_queue<V> todo;
+	
 	std::function<U (const T&) > track;
 	std::function<V (const T&) > pair;
 	std::function<const T& (const V&) > depair;

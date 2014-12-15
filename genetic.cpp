@@ -8,12 +8,14 @@ using namespace std;
 
 template<typename F, typename G, typename H, typename I>
 auto genetic(F generate_f, int k, G rank_f, H done_f, I mutate_f){
-	typedef typename decltype(generate_f())::value_type T;
 	typedef decltype(generate_f()) vec;
+	typedef typename vec::value_type T;
+
 	function<bool (const vec&)> done = done_f;
 	function<vec () > generate = generate_f;
 	function<double (const vec&) > rank = rank_f;
 	function<T (const T&)> mutate_e = mutate_f;
+	
 	auto mutate = [&](const auto &v){
 		typename std::decay<decltype(v)>::type r;
 		for (auto &e : v)
