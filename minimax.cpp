@@ -7,7 +7,7 @@ template<typename Node>
 struct path {
 	enum class empty { EMPTY};
 	const Node* elem;
-	std::unique_ptr<path> r;
+	std::unique_ptr<const path> r;
 	path(const Node& elem, decltype(r) r)
 		:elem(&elem),r(r){}
 	
