@@ -2,6 +2,7 @@
 
 template<int n, typename T>
 class NHist{
+	static_assert(n >= 2);
 
 	std::array<n,T> hist;
 	int currpos = 0;
