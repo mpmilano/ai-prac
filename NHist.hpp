@@ -19,6 +19,7 @@ public:
 		if (clear) curr().clear();
 		return *this;
 	}
+	
 	auto& prev(int g = 1){
 		auto r = currpos - g;
 		if (r < 0) return hist[g + r];
