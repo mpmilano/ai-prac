@@ -1,27 +1,27 @@
-#include <boost/variant.hpp>
 #include <list>
 #include <memory>
-#include "inline_variant.hpp"
+#include <functional>
+
 
 template<typename Node>
 struct path {
 	enum class empty { EMPTY};
 	const Node* elem;
-	std::shared_ptr<path> r;
+	std::unique_ptr<path> r;
 	path(const Node& elem, decltype(r) r)
 		:elem(&elem),r(r){}
 	
 	path(const Node& elem, path r)
-		:elem(&elem),r(std::shared_ptr<path>(new path(r))){}
+		:elem(&elem),r(std::unique_ptr<path>(new path(r))){}
 
 	path(const Node& elem, empty)
 		:elem(&elem){}
 
 	path(const path& p)
-		:elem(p.elem),r(std::shared_ptr<path>(new path(p.r))){}
+		:elem(p.elem),r(std::unique_ptr<path>(new path(p.r))){}
 	
-	path(const std::shared_ptr<path>& p)
-		:elem(p->elem),r(std::shared_ptr<path>(new path(p->r))){}
+	path(const std::unique_ptr<path>& p)
+		:elem(p->elem),r(std::unique_ptr<path>(new path(p->r))){}
 
 
 	bool operator==(const path &p) const{
@@ -30,7 +30,7 @@ struct path {
 
 	path operator=(const path &p){
 		elem = p.elem;
-		r = p.r;
+		r = std::unique_ptr<path>(new path(*p.r));
 		return *this;
 	}
 };
