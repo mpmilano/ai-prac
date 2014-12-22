@@ -53,7 +53,6 @@ const auto& depair(const std::pair<double, const std::shared_ptr<path>* > &p){
 	return *p.second;
 }
 
-//TODO: this is all broken because of the priority queue :( 
 std::shared_ptr<path> a_star(const Node &first, const Node& goal,
 							 std::function<double (const Node& )> h){
 	auto open = build_pwl(get_head, pair_with_cost, depair);
