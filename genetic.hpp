@@ -21,7 +21,8 @@ auto genetic(F generate_f, int k, G rank_f, H done_f, I mutate_f) {
 
 	std::function<bool (const vec& )> done = done_f;
 	std::function<vec () > generate = generate_f;
-	std::function<double ( const vec&) > rank = rank_f;
+	std::function<double ( const vec&) > rank =
+		[&rank_f](const vec& v){auto ret = rank_f(v); assert(ret >= 0); return ret;};
 	std::function<T (const T&)> mutate_e = mutate_f;
 	
 	auto mutate = [&](const auto &v){

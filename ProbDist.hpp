@@ -10,8 +10,9 @@ class ProbDist{
 	std::array<const T*, granularity> source;
 	
 public:
-	
-	ProbDist(const LE &objs, const std::list<double> &probs){
+
+	template<typename T>
+	ProbDist(const LE &objs, const T &probs){
 		int i = 0;
 		double accp = 0;
 		auto it = probs.begin();
@@ -42,6 +43,4 @@ public:
 		for (auto &e : c) nc.push_back(v * e / total);
 		return nc;
 	}
-	
-	
 };

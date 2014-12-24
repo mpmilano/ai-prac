@@ -1,13 +1,16 @@
 #include <algorithm>
 #include "genetic.hpp"
+#include <time.h>
 //8 queens on an 8x8 board
+
+using namespace std;
 
 namespace queens{
 	constexpr int size = 8;
 	typedef int queen;
 	typedef std::array<queen,size> board;
 
-	double rank (const board &b){
+	double rank (const board &b, bool flat = false){
 		double score = 0;
 		std::array<bool, size> hits;
 		for (int i  = 0; i < size; ++i) hits[i] = false;
@@ -20,34 +23,38 @@ namespace queens{
 
 		//positive-slope diagonal intersection
 		{
-			int y = 0;
-			for (auto it = b.begin(); it != b.end(); ++it, ++y){
-				auto x = *it;
-				for (int offs = std::max( -1 * x, -1 * y); ; ++offs){
-					if (x + offs == (int) b.size()) break;
-					assert(x + offs >= 0);
-					if (b[x+offs] == y + offs) ++score;
-				}
+			int x = 0;
+			for (auto it = b.begin(); it != b.end(); ++it, ++x){
+				auto y = *it;
 				
+				//positive-slope diagonal intersection
+				for (int offs = std::max( -1 * x, -1 * y); y + offs < size; ++offs){
+					if (x + offs == (int) b.size()) break;
+					if (offs == 0) continue;
+					assert(x + offs >= 0 && x + offs < size);
+					assert(y + offs >= 0 && y + offs < size);
+					if (b[x+offs] == y + offs) {
+						//std::cout << "<" << x+ offs << "," << y + offs << "> intersects <" << x << "," << y << ">" << std::endl;
+						++score;
+					}
+				}
+
+				//negative-slope diagonal intersection
+				for (int offs = std::max( -1 * x, y - (size - 1) ); y - offs >= 0; ++offs){
+					assert(std::max( -1 * x, y - (size - 1) ) <= 0);
+					if (x + offs == (int) b.size()) break;
+					if (offs == 0) continue;
+					assert(x + offs >= 0 && x + offs < size);
+					assert(y - offs >= 0 && y - offs < size);
+					if (b[x+offs] == y - offs) {
+						++score;
+					}
+				}
 			}
 		}
-
-
-		//negative-slope diagonal intersection
-		{
-			int y = 0;
-			for (auto it = b.begin(); it != b.end(); ++it, ++y){
-				auto x = *it;
-				for (int offs = std::max( -1 * x, y - size); ; ++offs){
-					if (x + offs == (int) b.size()) break;
-					assert(x + offs >= 0);
-					if (b[x+offs] == y - offs) ++score;
-				}
-				
-			}
-		}
-
-		return  -1 * score;
+		return (flat ?
+				( score > 0 ? 1 : 0) :
+				((size * size * size) - score));
 	}
 
 	void print(const board &b){
@@ -57,7 +64,7 @@ namespace queens{
 	}
 
 	bool done(const board &b){
-		return ((int) rank(b)) == 0;
+		return ((int) rank(b)) == size * size * size;
 	}
 
 	queen mutate(const queen &r){
@@ -75,10 +82,53 @@ namespace queens{
 
 int main(){
 
-	srand(12);
+	srand(time(NULL));
 
+	clock_t start, end;
+	double cpu_time_used;
+	
+	queens::board knowngood;
+	knowngood[0] = 0;
+	knowngood[1] = 4;
+	knowngood[2] = 7;
+	knowngood[3] = 5;
+	knowngood[4] = 2;
+	knowngood[5] = 6;
+	knowngood[6] = 1;
+	knowngood[7] = 3;
+
+	if (!queens::done(knowngood)){
+		std::cerr << queens::rank(knowngood) << std::endl;
+		assert(queens::done(knowngood));
+	}
+
+	using namespace placeholders;
+	auto rank1 = bind(queens::rank,_1, true);
+	auto rank2 = bind(queens::rank,_1, false);
+
+
+	for (int cnt = 0; cnt < 30; ++cnt){
+		auto a = time(NULL);
 	//generate, k, rank, done, mutate
-	auto result = genetic(queens::generate, 8, queens::rank, queens::done, queens::mutate);
-	queens::print(result);
-		
+	{
+
+		srand(a);
+		start = clock();
+		auto result = genetic(queens::generate, 8, rank1, queens::done, queens::mutate);
+		end = clock();
+		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+		std::cout << "time for flat search: " << cpu_time_used << std::endl;
+		queens::print(result);
+	}
+	
+	{
+		srand(a);
+		start = clock();
+		auto result = genetic(queens::generate, 8, rank2, queens::done, queens::mutate);
+		end = clock();
+		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+		std::cout << "time for guided search: " << cpu_time_used << std::endl;
+		queens::print(result);
+	}
+	}
 }
